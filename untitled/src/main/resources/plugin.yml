@@ -1,4 +1,10 @@
-name: main
-version: '1.0-SNAPSHOT'
+name: YTMinecraft
+version: 1.0
 main: ytminecraft.main.Main
-api-version: '1.21'
+commands:
+  VIP추가:
+    description: Adds a player to the VIP list.
+    usage: /VIP추가 [플레이어 닉네임]
+  한글닉:
+    description: Changes the player's nickname to the specified text.
+    usage: /한글닉 [텍스트]
