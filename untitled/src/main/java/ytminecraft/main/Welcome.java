@@ -5,14 +5,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import ytminecraft.main.TitleManager;
+
+import java.util.UUID;
 
 public class Welcome implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        UUID playerUUID = player.getUniqueId();
         String playerName = player.getName();
-        String title = TitleManager.getTitle(playerName);
+        String title = TitleManager.getTitle(playerUUID);
         String titleColor = TitleManager.getTitleColor(title);
         String nickname = TitleManager.getNickname(playerName);
 

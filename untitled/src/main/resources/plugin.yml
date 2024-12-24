@@ -8,3 +8,9 @@ commands:
   한글닉:
     description: Changes the player's nickname to the specified text.
     usage: /한글닉 [텍스트]
+  출석체크:
+    description: Checks attendance and updates attendance coins and days.
+    usage: /출석체크
+  상점:
+    description: Opens the shop GUI.
+    usage: /상점

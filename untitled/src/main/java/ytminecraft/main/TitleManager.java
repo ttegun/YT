@@ -1,71 +1,109 @@
 package ytminecraft.main;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
-public class TitleManager implements CommandExecutor, Listener {
-    public static List<String> owner = new ArrayList<>();
-    public static List<String> dev = new ArrayList<>();
-    public static List<String> user = new ArrayList<>();
-    private static Map<String, String> nicknames = new HashMap<>();
+public class TitleManager implements Listener, CommandExecutor {
+    private static File titleFile;
+    private static FileConfiguration titleConfig;
     private static Set<UUID> vip = new HashSet<>();
-    private static File vipFile;
-    private static FileConfiguration vipConfig;
-
-    static {
-        owner.add("2ay0ut");
-        dev.add("Lucent_1");
-    }
+    private static Set<UUID> vipPlus = new HashSet<>();
+    private static Set<UUID> mvp = new HashSet<>();
+    private static Set<UUID> mvpPlus = new HashSet<>();
+    private static Map<String, String> nicknames = new HashMap<>();
 
     public TitleManager() {
-        vipFile = new File("plugins/YTMinecraft/vip.yml");
-        vipConfig = YamlConfiguration.loadConfiguration(vipFile);
-        loadVIPs();
+        titleFile = new File("plugins/YTMinecraft/titles.yml");
+        titleConfig = YamlConfiguration.loadConfiguration(titleFile);
+        loadTitles();
     }
 
-    private void loadVIPs() {
-        List<String> vipList = vipConfig.getStringList("vip");
-        for (String uuid : vipList) {
+    private void loadTitles() {
+        for (String uuid : titleConfig.getStringList("vip")) {
             vip.add(UUID.fromString(uuid));
         }
+        for (String uuid : titleConfig.getStringList("vipPlus")) {
+            vipPlus.add(UUID.fromString(uuid));
+        }
+        for (String uuid : titleConfig.getStringList("mvp")) {
+            mvp.add(UUID.fromString(uuid));
+        }
+        for (String uuid : titleConfig.getStringList("mvpPlus")) {
+            mvpPlus.add(UUID.fromString(uuid));
+        }
     }
 
-    private void saveVIPs() {
-        List<String> vipList = new ArrayList<>();
-        for (UUID uuid : vip) {
-            vipList.add(uuid.toString());
-        }
-        vipConfig.set("vip", vipList);
+    private static void saveTitles() {
+        titleConfig.set("vip", convertUUIDSetToStringList(vip));
+        titleConfig.set("vipPlus", convertUUIDSetToStringList(vipPlus));
+        titleConfig.set("mvp", convertUUIDSetToStringList(mvp));
+        titleConfig.set("mvpPlus", convertUUIDSetToStringList(mvpPlus));
         try {
-            vipConfig.save(vipFile);
+            titleConfig.save(titleFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public static String getTitle(String playerName) {
-        if (owner.contains(playerName)) {
-            return "Owner";
-        } else if (dev.contains(playerName)) {
-            return "Dev";
-        } else if (vip.contains(UUID.fromString(playerName))) {
-            return "VIP";
-        } else if (user.contains(playerName)) {
-            return "User";
+    private static Set<String> convertUUIDSetToStringList(Set<UUID> uuidSet) {
+        Set<String> stringList = new HashSet<>();
+        for (UUID uuid : uuidSet) {
+            stringList.add(uuid.toString());
+        }
+        return stringList;
+    }
+
+    public static boolean addTitle(UUID playerUUID, String title) {
+        if (title.equals("Vip")) {
+            if (!vip.contains(playerUUID) && !vipPlus.contains(playerUUID) && !mvp.contains(playerUUID) && !mvpPlus.contains(playerUUID)) {
+                vip.add(playerUUID);
+                saveTitles();
+                return true;
+            }
+        } else if (title.equals("Vip+")) {
+            if (!vipPlus.contains(playerUUID) && !mvp.contains(playerUUID) && !mvpPlus.contains(playerUUID)) {
+                vipPlus.add(playerUUID);
+                saveTitles();
+                return true;
+            }
+        } else if (title.equals("Mvp")) {
+            if (!mvp.contains(playerUUID) && !mvpPlus.contains(playerUUID)) {
+                mvp.add(playerUUID);
+                saveTitles();
+                return true;
+            }
+        } else if (title.equals("Mvp+")) {
+            if (!mvpPlus.contains(playerUUID)) {
+                mvpPlus.add(playerUUID);
+                saveTitles();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String getTitle(UUID playerUUID) {
+        if (mvpPlus.contains(playerUUID)) {
+            return "Mvp+";
+        } else if (mvp.contains(playerUUID)) {
+            return "Mvp";
+        } else if (vipPlus.contains(playerUUID)) {
+            return "Vip+";
+        } else if (vip.contains(playerUUID)) {
+            return "Vip";
         } else {
-            user.add(playerName);
             return "User";
         }
     }
@@ -91,62 +129,7 @@ public class TitleManager implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("VIP추가")) {
-            if (sender.isOp()) {
-                if (args.length == 1) {
-                    Player player = sender.getServer().getPlayer(args[0]);
-                    if (player != null) {
-                        UUID playerUUID = player.getUniqueId();
-                        if (!vip.contains(playerUUID)) {
-                            vip.add(playerUUID);
-                            saveVIPs();
-                            sender.sendMessage(player.getName() + " 님이 VIP 목록에 추가되었습니다!");
-                        } else {
-                            sender.sendMessage(player.getName() + " 는 이미 VIP 목록에 추가되었습니다!");
-                        }
-                    } else {
-                        sender.sendMessage("플레이어를 찾을 수 없습니다.");
-                    }
-                } else {
-                    sender.sendMessage("Usage: /VIP추가 [플레이어 닉네임]");
-                }
-            } else {
-                sender.sendMessage("당신은 이 명령어를 사용 할 권한이 없습니다.");
-            }
-            return true;
-        } else if (command.getName().equalsIgnoreCase("한글닉")) {
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                if (args.length == 1) {
-                    String newNickname = args[0];
-                    String title = getTitle(player.getName());
-                    String titleColor = getTitleColor(title);
-
-                    player.setDisplayName(titleColor + "[" + title + "] " + ChatColor.RESET + newNickname);
-                    player.setPlayerListName(titleColor + "[" + title + "] " + ChatColor.RESET + newNickname);
-                    nicknames.put(player.getName(), newNickname);
-                    sender.sendMessage("닉네임이 " + newNickname + " 으로 변경되었습니다.");
-                } else {
-                    sender.sendMessage("Usage: /한글닉 [텍스트]");
-                }
-            } else {
-                sender.sendMessage("이 명령어는 플레이어만 사용할 수 있습니다.");
-            }
-            return true;
-        }
+        // Implement command handling logic here
         return false;
-    }
-
-    @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
-        Player player = event.getPlayer();
-        String playerName = player.getName(); // Use original name for chat
-        String title = getTitle(playerName);
-        String titleColor = getTitleColor(title);
-        String nickname = getNickname(playerName);
-
-        // Modify the chat format
-        String message = event.getMessage();
-        event.setFormat(titleColor + "[" + title + "] " + ChatColor.RESET + "<" + nickname + "> " + message);
     }
 }
