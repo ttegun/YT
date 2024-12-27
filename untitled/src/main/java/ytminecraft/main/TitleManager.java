@@ -1,19 +1,17 @@
 package ytminecraft.main;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TitleManager implements Listener, CommandExecutor {
     private static File titleFile;
@@ -23,11 +21,19 @@ public class TitleManager implements Listener, CommandExecutor {
     private static Set<UUID> mvp = new HashSet<>();
     private static Set<UUID> mvpPlus = new HashSet<>();
     private static Map<String, String> nicknames = new HashMap<>();
+    private static List<UUID> owners = new ArrayList<>();
+    private static List<UUID> devs = new ArrayList<>();
 
     public TitleManager() {
         titleFile = new File("plugins/YTMinecraft/titles.yml");
         titleConfig = YamlConfiguration.loadConfiguration(titleFile);
         loadTitles();
+
+        // Add Owner title to 2ay0ut
+        owners.add(UUID.fromString("e07fe73e-b1ed-4fa5-b64a-ad4aadf6b1a7"));
+
+        // Add Dev title to Lucent_1
+        devs.add(UUID.fromString("e0c977ae-aa5f-4ecc-9f51-a129886e5abd"));
     }
 
     private void loadTitles() {
@@ -66,7 +72,17 @@ public class TitleManager implements Listener, CommandExecutor {
     }
 
     public static boolean addTitle(UUID playerUUID, String title) {
-        if (title.equals("Vip")) {
+        if (title.equals("Owner")) {
+            if (!owners.contains(playerUUID)) {
+                owners.add(playerUUID);
+                return true;
+            }
+        } else if (title.equals("Dev")) {
+            if (!devs.contains(playerUUID)) {
+                devs.add(playerUUID);
+                return true;
+            }
+        } else if (title.equals("Vip")) {
             if (!vip.contains(playerUUID) && !vipPlus.contains(playerUUID) && !mvp.contains(playerUUID) && !mvpPlus.contains(playerUUID)) {
                 vip.add(playerUUID);
                 saveTitles();
@@ -95,7 +111,11 @@ public class TitleManager implements Listener, CommandExecutor {
     }
 
     public static String getTitle(UUID playerUUID) {
-        if (mvpPlus.contains(playerUUID)) {
+        if (owners.contains(playerUUID)) {
+            return "Owner";
+        } else if (devs.contains(playerUUID)) {
+            return "Dev";
+        } else if (mvpPlus.contains(playerUUID)) {
             return "Mvp+";
         } else if (mvp.contains(playerUUID)) {
             return "Mvp";
@@ -129,7 +149,24 @@ public class TitleManager implements Listener, CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Implement command handling logic here
+        if (command.getName().equalsIgnoreCase("addTitle")) {
+            if (args.length != 2) {
+                sender.sendMessage("Usage: /addTitle <player> <title>");
+                return false;
+            }
+            Player target = Bukkit.getPlayer(args[0]);
+            if (target == null) {
+                sender.sendMessage("Player not found.");
+                return false;
+            }
+            String title = args[1];
+            if (addTitle(target.getUniqueId(), title)) {
+                sender.sendMessage("Added title " + title + " to " + target.getName());
+            } else {
+                sender.sendMessage("Failed to add title. The player may already have a title.");
+            }
+            return true;
+        }
         return false;
     }
 }

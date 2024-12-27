@@ -29,11 +29,16 @@ public class ScoreboardManager {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
         String currentTime = sdf.format(new Date());
         Score timeScore = objective.getScore(ChatColor.GREEN + "현실시각: " + ChatColor.WHITE + currentTime);
-        timeScore.setScore(2);
+        timeScore.setScore(3);
 
         // Set the attendance coins
         Score coinsScore = objective.getScore(ChatColor.GREEN + "출석코인: " + ChatColor.WHITE + attendanceCoins);
-        coinsScore.setScore(1);
+        coinsScore.setScore(2);
+
+        // Set the player's title
+        String title = TitleManager.getTitle(player.getUniqueId());
+        Score titleScore = objective.getScore(ChatColor.GREEN + "당신의 칭호: " + ChatColor.WHITE + title);
+        titleScore.setScore(1);
 
         // Assign the scoreboard to the player
         player.setScoreboard(board);
