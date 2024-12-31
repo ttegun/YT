@@ -3,8 +3,12 @@ package ytminecraft.main;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
+
+import java.io.File;
 
 public class PluginReloader implements CommandExecutor {
 
@@ -23,9 +27,18 @@ public class PluginReloader implements CommandExecutor {
             }
 
             PluginManager pluginManager = plugin.getServer().getPluginManager();
-            pluginManager.disablePlugin(plugin);
-            pluginManager.enablePlugin(plugin);
-            sender.sendMessage("Plugin reloaded successfully.");
+            File pluginFile = new File(plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+
+            try {
+                pluginManager.disablePlugin(plugin);
+                pluginManager.loadPlugin(pluginFile);
+                pluginManager.enablePlugin(pluginManager.getPlugin(plugin.getName()));
+                sender.sendMessage("Plugin reloaded successfully.");
+            } catch (InvalidPluginException | InvalidDescriptionException e) {
+                sender.sendMessage("Failed to reload the plugin: " + e.getMessage());
+                e.printStackTrace();
+            }
+
             return true;
         }
         return false;

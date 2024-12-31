@@ -1,6 +1,7 @@
 name: YTMinecraft
 version: 1.0
 main: ytminecraft.main.Main
+api-version: 1.21.4
 commands:
   VIP추가:
     description: Adds a VIP player
@@ -20,3 +21,5 @@ commands:
     description: Reloads the plugin
   월드리스트:
     description: Lists all current worlds
+  공지:
+    description: Broadcasts a message to all players
