@@ -33,6 +33,7 @@ public void onEnable() {
     Bukkit.getPluginManager().registerEvents(new PortalListener(this), this);
     Bukkit.getPluginManager().registerEvents(new CommandBlocker(), this);
     Bukkit.getPluginManager().registerEvents(worldTeleportManager, this);
+    Bukkit.getPluginManager().registerEvents(new RespawnListener(), this);
     this.getCommand("VIP추가").setExecutor(titleManager);
     this.getCommand("한글닉").setExecutor(titleManager);
     this.getCommand("출석체크").setExecutor(attendanceManager);
